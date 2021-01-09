@@ -41,6 +41,7 @@ var createTaskEl = function(taskDataObj) {
   var listItemEl = document.createElement("li");
   listItemEl.className = "task-item";
   listItemEl.setAttribute("data-task-id", taskIdCounter);
+  listItemEl.setAttribute("draggable", true);
 
   var taskInfoEl = document.createElement("div");
   taskInfoEl.className = "task-info";
@@ -176,6 +177,44 @@ var deleteTask = function(taskId) {
   taskSelected.remove();
 };
 
+function dragTaskHandler(event) {
+  var taskId= event.target.getAttribute("data-task-id");
+  event.dataTransfer.setData("text/plain", taskId)
+  let getId = event.dataTransfer.getData("text/plain");
+  console.log("getId:", getId, typeof getId);
+}
+
+function dropZoneDragHandler(event) {
+  let taskListEl = event.target.closest(".task-list")
+  if(taskListEl) {
+    event.preventDefault();
+  }
+};
+
+function dropTaskHandler(event) {
+  let id = event.dataTransfer.getData("text/plain");
+  var draggableElement = document.querySelector("[data-task-id='" + id + "']");
+  let dropZoneEl = event.target.closest(".task-list");
+  let statusType = dropZoneEl.id;
+  console.log(statusType);
+  console.dir(dropZoneEl);
+
+  // set status of task based on dropZone id
+  let statusSelectEl = draggableElement.querySelector("select[name='status-change']");
+  if (statusType === "tasks-to-do") {
+    statusSelectEl.selectedIndex = 0;
+  }
+  else if (statusType === "tasks-in-progress") {
+    statusSelectEl.selectedIndex = 1;
+  }
+  else if (statusType === "tasks-completed"){
+    statusSelectEl.selectedIndex = 2;
+  }
+
+  dropZoneEl.appendChild(draggableElement);
+
+}
+
 // Create a new task
 formEl.addEventListener("submit", taskFormHandler);
 
@@ -184,3 +223,9 @@ pageContentEl.addEventListener("click", taskButtonHandler);
 
 // for changing the status
 pageContentEl.addEventListener("change", taskStatusChangeHandler);
+
+pageContentEl.addEventListener("dragstart", dragTaskHandler);
+
+pageContentEl.addEventListener("dragover", dropZoneDragHandler);
+
+pageContentEl.addEventListener("drop", dropTaskHandler);
